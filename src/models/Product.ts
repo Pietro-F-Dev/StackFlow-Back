@@ -7,6 +7,8 @@ export interface IProduct extends Document {
   category: string;
   costPrice: number;
   salePrice: number;
+  taxCents: number;
+  shippingCents: number;
   quantity: number;
   minStock: number;
   active: boolean;
@@ -21,6 +23,8 @@ const productSchema = new Schema<IProduct>(
     category: { type: String, required: true, trim: true },
     costPrice: { type: Number, required: true, min: 0 },
     salePrice: { type: Number, required: true, min: 0 },
+    taxCents: { type: Number, default: 0 },
+    shippingCents: { type: Number, default: 0 },
     quantity: { type: Number, required: true, min: 0, default: 0 },
     minStock: { type: Number, required: true, min: 0, default: 0 },
     active: { type: Boolean, default: true },

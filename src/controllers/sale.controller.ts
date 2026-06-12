@@ -31,3 +31,14 @@ export const getSale = asyncHandler(async (req: Request, res: Response) => {
   }
   res.json(sale);
 });
+
+export const cancelSale = asyncHandler(async (req: Request, res: Response) => {
+  const { id: userId, role } = getAuthUser(req);
+  const sale = await saleService.cancelSale({
+    saleId: req.params.id,
+    userId,
+    role,
+    input: req.body,
+  });
+  res.json(sale);
+});

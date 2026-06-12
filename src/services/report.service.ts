@@ -25,7 +25,7 @@ export async function getMonthlyReport(year: number, month: number) {
 
 async function getSummary(start: Date, end: Date) {
   const [result] = await Sale.aggregate([
-    { $match: { date: { $gte: start, $lt: end } } },
+    { $match: { date: { $gte: start, $lt: end }, cancelledAt: null } },
     { $unwind: '$items' },
     {
       $group: {
@@ -52,7 +52,7 @@ async function getSummary(start: Date, end: Date) {
 
 async function getTopProducts(start: Date, end: Date) {
   return Sale.aggregate([
-    { $match: { date: { $gte: start, $lt: end } } },
+    { $match: { date: { $gte: start, $lt: end }, cancelledAt: null } },
     { $unwind: '$items' },
     {
       $group: {
@@ -70,7 +70,7 @@ async function getTopProducts(start: Date, end: Date) {
 
 async function getDailySeries(start: Date, end: Date, year: number, month: number) {
   const rows = await Sale.aggregate([
-    { $match: { date: { $gte: start, $lt: end } } },
+    { $match: { date: { $gte: start, $lt: end }, cancelledAt: null } },
     { $unwind: '$items' },
     {
       $group: {

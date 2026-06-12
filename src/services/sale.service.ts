@@ -8,7 +8,8 @@ import { ROLES, type Role } from '../constants/roles';
 import { parsePagination, buildPaginatedResult, type PaginatedResult } from '../utils/pagination';
 import { parseDateRange } from '../utils/dateRange';
 import { withTransaction } from '../utils/withTransaction';
-import type { CreateSaleInput } from '../schemas/sale.schema';
+import type { CreateSaleInput, CancelSaleInput } from '../schemas/sale.schema';
+import { Types } from 'mongoose';
 
 interface SaleTotals {
   grossTotal: number;
@@ -117,6 +118,54 @@ interface ListSalesOptions {
   query: { from?: string; to?: string; page?: unknown; limit?: unknown };
   userId: string;
   role: Role;
+}
+
+interface CancelSaleOptions {
+  saleId: string;
+  userId: string;
+  role: Role;
+  input: CancelSaleInput;
+}
+
+export async function cancelSale({ saleId, userId, role, input }: CancelSaleOptions) {
+  if (!Types.ObjectId.isValid(saleId)) {
+    throw new AppError(404, 'NOT_FOUND', 'Sale not found');
+  }
+  const sale = await Sale.findById(saleId);
+  if (!sale) throw new AppError(404, 'NOT_FOUND', 'Sale not found');
+  if (role !== ROLES.ADMIN && sale.userId.toString() !== userId) {
+    throw new AppError(404, 'NOT_FOUND', 'Sale not found');
+  }
+  if (sale.cancelledAt) {
+    throw new AppError(409, 'ALREADY_CANCELLED', 'Sale already cancelled');
+  }
+
+  return withTransaction(async (session) => {
+    for (const item of sale.items) {
+      await Product.findByIdAndUpdate(
+        item.productId,
+        { $inc: { quantity: item.qty } },
+        { session },
+      );
+      await StockMovement.create(
+        [{
+          productId: item.productId,
+          type: 'return',
+          qty: item.qty,
+          reason: input.reason,
+          refSaleId: sale._id,
+          userId,
+          date: new Date(),
+        }],
+        { session },
+      );
+    }
+    sale.cancelledAt = new Date();
+    sale.cancelledBy = new Types.ObjectId(userId);
+    sale.cancellationReason = input.reason;
+    await sale.save({ session });
+    return sale;
+  });
 }
 
 export async function listSales({ query, userId, role }: ListSalesOptions): Promise<PaginatedResult<unknown>> {

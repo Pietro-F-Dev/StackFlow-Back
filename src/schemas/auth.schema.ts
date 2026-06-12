@@ -23,6 +23,22 @@ export const refreshSchema = z.object({
   refreshToken: z.string().min(1).max(200),
 });
 
+const DATA_URL_RE = /^data:image\/(png|jpe?g|webp);base64,[A-Za-z0-9+/=]+$/;
+
+export const updateProfileSchema = z
+  .object({
+    name: z.string().trim().min(1).max(100).optional(),
+    avatarUrl: z
+      .string()
+      .max(250_000)
+      .refine((v) => v === '' || DATA_URL_RE.test(v), 'Invalid image data URL')
+      .optional(),
+  })
+  .refine((v) => v.name !== undefined || v.avatarUrl !== undefined, {
+    message: 'At least one field must be provided',
+  });
+
 export type LoginInput = z.infer<typeof loginSchema>;
 export type RegisterInput = z.infer<typeof registerSchema>;
 export type RefreshInput = z.infer<typeof refreshSchema>;
+export type UpdateProfileInput = z.infer<typeof updateProfileSchema>;

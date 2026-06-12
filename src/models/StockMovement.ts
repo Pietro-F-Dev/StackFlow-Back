@@ -1,6 +1,6 @@
 import { Schema, model, Document, Types } from 'mongoose';
 
-export type MovementType = 'in' | 'out' | 'sale' | 'adjustment';
+export type MovementType = 'in' | 'out' | 'sale' | 'adjustment' | 'return';
 
 export interface IStockMovement extends Document {
   _id: Types.ObjectId;
@@ -16,7 +16,7 @@ export interface IStockMovement extends Document {
 const stockMovementSchema = new Schema<IStockMovement>(
   {
     productId: { type: Schema.Types.ObjectId, ref: 'Product', required: true },
-    type: { type: String, enum: ['in', 'out', 'sale', 'adjustment'], required: true },
+    type: { type: String, enum: ['in', 'out', 'sale', 'adjustment', 'return'], required: true },
     qty: {
       type: Number,
       required: true,

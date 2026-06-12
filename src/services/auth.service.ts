@@ -1,11 +1,11 @@
 import crypto from 'crypto';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { User } from '../models/User';
+import { User, type IUser } from '../models/User';
 import { RefreshToken } from '../models/RefreshToken';
 import { AppError } from '../middlewares/errorHandler';
 import { env } from '../config/env';
-import type { RegisterInput, LoginInput } from '../schemas/auth.schema';
+import type { RegisterInput, LoginInput, UpdateProfileInput } from '../schemas/auth.schema';
 
 const SALT_ROUNDS = 10;
 
@@ -54,7 +54,32 @@ export async function login(input: LoginInput) {
   return {
     token,
     refreshToken,
-    user: { id: user._id, name: user.name, email: user.email, role: user.role },
+    user: {
+      id: user._id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      avatarUrl: user.avatarUrl,
+    },
+  };
+}
+
+export async function updateProfile(userId: string, input: UpdateProfileInput) {
+  const updates: Partial<Pick<IUser, 'name' | 'avatarUrl'>> = {};
+  if (input.name !== undefined) updates.name = input.name;
+  if (input.avatarUrl !== undefined) {
+    updates.avatarUrl = input.avatarUrl === '' ? undefined : input.avatarUrl;
+  }
+  const user = await User.findByIdAndUpdate(userId, updates, { new: true });
+  if (!user) {
+    throw new AppError(404, 'USER_NOT_FOUND', 'User not found');
+  }
+  return {
+    id: user._id,
+    name: user.name,
+    email: user.email,
+    role: user.role,
+    avatarUrl: user.avatarUrl,
   };
 }
 

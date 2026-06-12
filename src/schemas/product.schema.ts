@@ -6,6 +6,8 @@ const productBase = z.object({
   category: z.string().min(1).max(100),
   costPrice: z.number().int().min(0),
   salePrice: z.number().int().min(0),
+  taxCents: z.number().int().default(0),
+  shippingCents: z.number().int().default(0),
   quantity: z.number().int().min(0),
   minStock: z.number().int().min(0).default(0),
 });

@@ -23,7 +23,7 @@ app.use(cors({
   origin: env.allowedOrigin ?? (env.isProd ? false : '*'),
   credentials: true,
 }));
-app.use(express.json({ limit: '10kb' }));
+app.use(express.json({ limit: '300kb' }));
 
 app.get('/health', (_req, res) => {
   res.json({ status: 'ok' });

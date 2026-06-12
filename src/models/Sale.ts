@@ -20,6 +20,9 @@ export interface ISale extends Document {
   totalPaid: number;
   notes?: string;
   userId: Types.ObjectId;
+  cancelledAt?: Date;
+  cancelledBy?: Types.ObjectId;
+  cancellationReason?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -42,16 +45,20 @@ const saleSchema = new Schema<ISale>(
     grossTotal: { type: Number, required: true, min: 0 },
     netTotal: { type: Number, required: true },
     discountCents: { type: Number, default: 0, min: 0 },
-    taxCents: { type: Number, default: 0, min: 0 },
-    shippingCents: { type: Number, default: 0, min: 0 },
+    taxCents: { type: Number, default: 0 },
+    shippingCents: { type: Number, default: 0 },
     totalPaid: { type: Number, required: true, min: 0 },
     notes: { type: String, trim: true, maxlength: 500 },
     userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+    cancelledAt: { type: Date },
+    cancelledBy: { type: Schema.Types.ObjectId, ref: 'User' },
+    cancellationReason: { type: String, trim: true, maxlength: 500 },
   },
   { timestamps: true },
 );
 
 saleSchema.index({ date: -1 });
 saleSchema.index({ userId: 1, date: -1 });
+saleSchema.index({ cancelledAt: 1 });
 
 export const Sale = model<ISale>('Sale', saleSchema);
